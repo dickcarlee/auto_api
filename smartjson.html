@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://cdn.bootcss.com/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+    <!--script src="/static/jbox/Source/jBox.js"></script>
+    <script src="/static/jbox/Source/plugins/Notice/jBox.Notice.js"></script>
+    <link rel="stylesheet"  href="{% static 'jbox/Source/jBox.css' %}">
+    <link rel="stylesheet"  href="{% static 'jbox/Source/plugins/Notice/jBox.Notice.css' %}"-->
+    <script src="https://code.jboxcdn.com/0.4.7/jBox.js"></script>
+    <link href="https://code.jboxcdn.com/0.4.7/jBox.css" rel="stylesheet">
+    <script src="https://code.jboxcdn.com/0.4.7/plugins/Notice/jBox.Notice.js"></script>
+    <link href="https://code.jboxcdn.com/0.4.7/plugins/Notice/jBox.Notice.css" rel="stylesheet">
+    <title>Smart Json</title>
+
+
+</head>
+<body>
+    <div class="container-fluid" >
+        <label>Input JSON：</label>
+        <textarea id="input-textarea" class="form-control col-sm-12" style="height: 80vh;" ></textarea>
+        <button class="btn btn-primary col-sm-2" style="margin-left: 40%;" onclick="analysis()">Pretty Print</button>
+    </div>
+    <div id="smart-json-show" class="modal" >
+        <div class="modal-dialog" style="max-width:99%;">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 2px">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="false">&times;</button>
+                    <h4 style="margin: 3px">Smart Json</h4>
+                </div>
+                <div class="modal-body" style="padding: 1px;">
+                </div>
+                <div class="modal-footer" style="padding: 2px">
+                    <a class="btn col-sm-12" data-dismiss="modal" >关闭</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="added-model" style="display: none">
+        <div  id="div-model" class="row" style=" margin:0px;padding:4px;border:4px #0f0f0f solid"></div>
+        <p class="col-sm-12" style="margin:0;word-wrap:break-word;word-break:break-all;font-size:12px;padding: 0px;"></p>
+    </div>
+
+
+</body>
+<script type="text/javascript">
+
+    function analysis() {
+        //
+        window.cnt = 0
+        window.board = ''
+        jQuery("div.modal-body div").remove()
+        //初始化
+        var text = jQuery("textarea#input-textarea").val()
+        var json = eval('('+text+')')
+        jQuery("div#smart-json-show").modal('show')
+        jQuery("div.added-model div").clone().css('background-color','#FDF7F8').addClass('col-sm-12').appendTo("div.modal-body")
+        window.board = jQuery("div.modal-body div")
+        json_analysis(json)
+    }
+
+    function json_analysis(opp) {
+        if (jQuery.type(opp) == 'object'){
+            for (var key in opp){
+                if (jQuery.type(opp[key]) == 'array' || jQuery.type(opp[key]) == 'object'){
+                    display(key+':')
+                    window.cnt += 1;
+                    window.board = jQuery("div.added-model div#div-model").clone()
+                        .addClass('col-sm-12').css('background-color',random_color()).appendTo(window.board)
+                    json_analysis(opp[key],window.board);
+                    window.cnt -= 1
+                    window.board = jQuery(window.board).parent()
+                }
+                else{
+                    display(key+':'+opp[key])
+                }
+            }
+        }
+        else if(jQuery.type(opp) == 'array'){
+            window.cnt += 1;
+            var count = opp.length
+            if (count > 4){
+                count = 4
+            }
+            for (element in opp){
+                window.board = jQuery("div.added-model div#div-model").clone().addClass('col-sm-'+12/count)
+                    .css('background-color',random_color()).appendTo(window.board)
+                json_analysis(opp[element])
+                window.board = jQuery(window.board).parent()
+            }
+            window.cnt -= 1
+        }
+    }
+
+    function display(value) {
+        var tmp_board=window.board
+        if (window.board.css('background-color') =='rgb(255, 255, 255)'){
+            jQuery(window.board).css('background-color',random_color())
+        }
+        if (window.board.css('background-color') =='rgb(49, 64, 165)'){
+            jQuery("div.added-model p").clone().css('color','#FEF4F5').text(value).appendTo(window.board)
+        }
+        else{
+            jQuery("div.added-model p").clone().text(value).appendTo(window.board)
+        }
+    }
+
+    jQuery(document.body).click(function () {
+        get_element(jQuery(event.srcElement))
+    })
+
+    function random_color(){
+        var color=['#FDF7F8','#FDF7F8','#FEBA20','#D31411','#3140A5']
+        var num = Math.round(Math.random()*4)
+        return color[num]
+    }
+
+    function get_element(opp){
+        var tmp_element=opp
+        var tmp_cnt=0
+        while (tmp_element[0] != jQuery("div.modal-body")[0]){
+            tmp_element = tmp_element.parent()
+            tmp_cnt += 1
+            if (tmp_cnt == 16){
+                break
+            }
+        }
+        if (tmp_cnt != 16){
+            var tmp_element = opp
+            if (tmp_element[0].nodeName == 'P'){
+                tmp_element = tmp_element.parent()
+            }
+            var array = new Array();
+            tmp_cnt = 0
+            while (tmp_element[0] != jQuery("div.modal-body")[0]){
+                tmp_cnt += 1
+                if (tmp_cnt == 16){
+                break
+                }
+                var tmp_parent = tmp_element.parent()
+                if (tmp_parent.children()[0] == tmp_element[0]){
+                    array.push('')
+                    tmp_element=tmp_element.parent()
+                }
+                else{
+                    for (i=0;i<tmp_parent.children().length;i++){
+                        if (tmp_parent.children()[i+1] == tmp_element[0]){
+                            if (tmp_parent.children()[i].nodeName != 'DIV'){
+                                array.push(tmp_parent.children()[i].innerText)
+                                tmp_element=tmp_element.parent()
+                                break
+                            }
+                            else{
+                                array.push('')
+                                tmp_element=tmp_element.parent()
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            var stdout=''
+            var ends=new Array()
+            for (var i=array.length-1;i>-1;i--){
+                if (array[i] == '' && i != array.length-1){
+                    stdout+='['
+                    ends.push(']')
+                }
+                else{
+                    stdout+=array[i]
+                    stdout+='{'
+                    ends.push('}')
+                }
+            }
+            for (var i=ends.length-1;i>-1;i--){
+                stdout+=ends[i]
+            }
+            popup(stdout)
+        }
+    }
+    function popup(opp) {
+       new jBox('Notice', {
+            content: opp,
+            color: 'white'
+        });
+    }
+
+
+
+</script>
+</html>
